@@ -34,7 +34,7 @@ def borrow():
     members = Member.query.order_by(Member.name).all()
     return render_template('loans/borrow.html', books=books, members=members)
 
-@loans_bp.get('/return/<int:loan_id>')
+@loans_bp.route('/return/<int:loan_id>', methods=['POST'])
 def return_loan(loan_id):
     loan = Loan.query.get_or_404(loan_id)
     if loan.returned_at is None:

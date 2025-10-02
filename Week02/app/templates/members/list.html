@@ -15,7 +15,9 @@
       <td>{{ member.email }}</td>
       <td>
         <a class='btn btn-sm btn-outline-primary' href='{{ url_for("members.edit_member", member_id=member.id) }}'>Sửa</a>
-        <a class='btn btn-sm btn-outline-danger' href='{{ url_for("members.delete_member", member_id=member.id) }}' onclick="return confirm('Xóa thành viên?');">Xóa</a>
+        <form action='{{ url_for("members.delete_member", member_id=member.id) }}' method='post' style='display:inline;'>
+          <button type='submit' class='btn btn-sm btn-outline-danger' onclick="return confirm('Xóa thành viên?');">Xóa</button>
+        </form>
       </td>
     </tr>
     {% endfor %}

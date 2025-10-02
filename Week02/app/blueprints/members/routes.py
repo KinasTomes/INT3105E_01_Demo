@@ -46,7 +46,7 @@ def edit_member(member_id):
                 return redirect(url_for('members.list_members'))
     return render_template('members/edit.html', member=m)
 
-@members_bp.get('/<int:member_id>/delete')
+@members_bp.route('/<int:member_id>/delete', methods=['POST', 'DELETE'])
 def delete_member(member_id):
     m = Member.query.get_or_404(member_id)
     if Loan.query.filter(Loan.member_id==m.id, Loan.returned_at.is_(None)).first():

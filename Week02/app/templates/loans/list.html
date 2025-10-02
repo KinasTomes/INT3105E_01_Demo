@@ -27,7 +27,9 @@
       </td>
       <td>
         {% if loan.is_active() %}
-          <a class='btn btn-sm btn-success' href='{{ url_for("loans.return_loan", loan_id=loan.id) }}' onclick="return confirm('Xác nhận trả sách?');">Trả</a>
+          <form action='{{ url_for("loans.return_loan", loan_id=loan.id) }}' method='post' style='display:inline;'>
+            <button type='submit' class='btn btn-sm btn-success' onclick="return confirm('Xác nhận trả sách?');">Trả</button>
+          </form>
         {% endif %}
       </td>
     </tr>

@@ -55,7 +55,7 @@ def edit_book(book_id):
             return redirect(url_for('books.list_books'))
     return render_template('books/edit.html', book=b)
 
-@books_bp.get('/<int:book_id>/delete')
+@books_bp.route('/<int:book_id>/delete', methods=['POST', 'DELETE'])
 def delete_book(book_id):
     b = Book.query.get_or_404(book_id)
     if Loan.query.filter(Loan.book_id==b.id, Loan.returned_at.is_(None)).first():

@@ -23,7 +23,9 @@
       <td>{{ book.available_copies }}/{{ book.total_copies }}</td>
       <td>
         <a class='btn btn-sm btn-outline-primary' href='{{ url_for("books.edit_book", book_id=book.id) }}'>Sửa</a>
-        <a class='btn btn-sm btn-outline-danger' href='{{ url_for("books.delete_book", book_id=book.id) }}' onclick="return confirm('Xóa sách?');">Xóa</a>
+        <form action='{{ url_for("books.delete_book", book_id=book.id) }}' method='post' style='display:inline;'>
+          <button type='submit' class='btn btn-sm btn-outline-danger' onclick="return confirm('Xóa sách?');">Xóa</button>
+        </form>
       </td>
     </tr>
     {% endfor %}
