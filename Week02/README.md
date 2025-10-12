@@ -1,100 +1,80 @@
-# Flask Library Management System
+# Week02 - REST Architecture
 
-Hệ thống quản lý thư viện đơn giản được xây dựng bằng Flask với kiến trúc Blueprint.
+Thư mục này chứa 4 version demo từng bước các nguyên tắc REST Architecture:
 
-## Cấu trúc dự án
+## 📁 Cấu trúc
 
 ```
 Week02/
-├── app/
-│   ├── __init__.py          # Factory function tạo app
-│   ├── models.py            # Database models
-│   ├── blueprints/
-│   │   ├── main/
-│   │   │   ├── __init__.py
-│   │   │   └── routes.py    # Dashboard và seed data
-│   │   ├── books/
-│   │   │   ├── __init__.py
-│   │   │   └── routes.py    # CRUD operations cho sách
-│   │   ├── members/
-│   │   │   ├── __init__.py
-│   │   │   └── routes.py    # CRUD operations cho thành viên
-│   │   ├── loans/
-│   │   │   ├── __init__.py
-│   │   │   └── routes.py    # Quản lý mượn/trả sách
-│   │   └── api/
-│   │       ├── __init__.py
-│   │       └── routes.py    # JSON API endpoints
-│   └── templates/
-│       ├── base.html        # Template cơ sở
-│       ├── dashboard.html   # Trang chủ
-│       ├── books/
-│       │   ├── list.html
-│       │   ├── new.html
-│       │   └── edit.html
-│       ├── members/
-│       │   ├── list.html
-│       │   ├── new.html
-│       │   └── edit.html
-│       └── loans/
-│           ├── list.html
-│           └── borrow.html
-├── run.py                   # Entry point
-├── requirements.txt         # Dependencies
-└── README.md               # Tài liệu này
+├── v1_client_server/     # Client-Server
+├── v2_stateless/        # + Stateless  
+├── v3_cacheable_uniform/ # + Cacheable + Uniform Interface
+├── v4_full_rest/        # + Layered System + Code-on-Demand
+└── README.md            # File này
 ```
 
-## Tính năng
+## 🚀 Evolution Timeline
 
-- **Quản lý sách**: Thêm, sửa, xóa, tìm kiếm sách
-- **Quản lý thành viên**: Thêm, sửa, xóa thành viên
-- **Quản lý mượn/trả**: Tạo phiếu mượn, trả sách, theo dõi hạn trả
-- **Giao diện web**: Sử dụng Bootstrap cho UI responsive
-- **API JSON**: Các endpoint để tích hợp với hệ thống khác
-- **Cơ sở dữ liệu**: SQLite tự động tạo
+### V1: Client-Server
+**Port: 5000**
+- ✅ Client-Server separation
+- Basic HTTP endpoints
+- Simple in-memory storage
 
-## Cài đặt và chạy
+### V2: + Stateless  
+**Port: 5001**
+- ✅ Client-Server
+- ✅ Stateless (no server-side sessions)
+- Complete request information
+- Query parameters for filtering
 
-1. Cài đặt dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+### V3: + Cacheable + Uniform Interface
+**Port: 5002** 
+- ✅ Client-Server
+- ✅ Stateless  
+- ✅ Cacheable (ETags, Cache-Control)
+- ✅ Uniform Interface (standard URIs, HTTP codes)
+- Conditional requests (304 Not Modified)
+- Optimistic concurrency control
 
-2. Chạy ứng dụng:
-   ```bash
-   python run.py
-   ```
+### V4: + Layered System + Code-on-Demand
+**Port: 5003**
+- ✅ Client-Server
+- ✅ Stateless
+- ✅ Cacheable  
+- ✅ Uniform Interface
+- ✅ Layered System (middleware, monitoring)
+- ✅ Code-on-Demand (dynamic client scripts)
+- **HATEOAS** hypermedia links
+- Pagination with navigation
+- Health monitoring
 
-3. Truy cập: `http://127.0.0.1:5000`
+## 🧪 Quick Test All Versions
 
-## API Endpoints
+```bash
+# Terminal 1
+cd v1_client_server && python app.py
 
-### Books
-- `GET /api/books` - Lấy danh sách sách
-- `POST /api/books` - Tạo sách mới
+# Terminal 2  
+cd v2_stateless && python app.py
 
-### Borrows
-- `POST /api/borrow` - Tạo phiếu mượn
-- `POST /api/return/<id>` - Trả sách
+# Terminal 3
+cd v3_cacheable_uniform && python app.py
 
-## Kiến trúc Blueprint
+# Terminal 4
+cd v4_full_rest && python app.py
+```
 
-Ứng dụng sử dụng Flask Blueprints để tổ chức code thành các module riêng biệt:
+**Browsers:**
+- V1: http://localhost:5000
+- V2: http://localhost:5001  
+- V3: http://localhost:5002
+- V4: http://localhost:5003
 
-- `main`: Dashboard và các chức năng chung
-- `books`: Quản lý sách
-- `members`: Quản lý thành viên
-- `loans`: Quản lý phiếu mượn/trả
-- `api`: API endpoints
 
-Mỗi blueprint có cấu trúc riêng với routes và templates tương ứng.
+Mỗi version tập trung vào:
 
-## Database Models
-
-- **Book**: Thông tin sách (title, author, year, total_copies, available_copies)
-- **Member**: Thông tin thành viên (name, email)
-- **Loan**: Phiếu mượn (book_id, member_id, borrowed_at, due_date, returned_at)
-
-## Templates
-
-Sử dụng Jinja2 templates với base template và kế thừa. Giao diện sử dụng Bootstrap 5 CDN.
+1. **V1**: Hiểu Client-Server separation
+2. **V2**: Stateless communication patterns  
+3. **V3**: HTTP caching và standard interfaces
+4. **V4**: Complete REST với hypermedia và layering
