@@ -1,0 +1,826 @@
+openapi: 3.1.0
+info:
+  title: Library Management API
+  version: 1.0.0
+  description: RESTful API for managing books, members, and loans in a library system
+
+servers:
+  - url: https://api.library.com/v1
+    description: Production server
+  - url: http://localhost:5000/api
+    description: Development server
+  
+paths:
+  /books:
+    get:
+      summary: Get all books
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: author
+          in: query
+          schema:
+            type: string
+        - name: available
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of books
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookCollection'
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookCreate'
+      responses:
+        "201":
+          description: Book created successfully
+          headers:
+            Location:
+              description: URL of the created book
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "409":
+          description: Book already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /books/{bookId}:
+    parameters:
+      - $ref: '#/components/parameters/bookId'
+    
+    get:
+      summary: Get a specific book
+      responses:
+        "200":
+          description: Book details
+          headers:
+            ETag:
+              description: Entity tag for caching
+              schema:
+                type: string
+            Last-Modified:
+              description: Last modification date
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        "304":
+          description: Not modified (cached version is current)
+        "404":
+          description: Book not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update a specific book
+      parameters:
+        - name: If-Match
+          in: header
+          description: ETag for optimistic concurrency control
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookUpdate'
+      responses:
+        "200":
+          description: Book updated successfully
+          headers:
+            ETag:
+              description: New entity tag
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: Book not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "409":
+          description: Conflict (resource modified)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a specific book
+      responses:
+        "204":
+          description: Book deleted successfully
+        "404":
+          description: Book not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "409":
+          description: Cannot delete book with active loans
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /members:
+    get:
+      summary: Get all members
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: List of members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberCollection'
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberCreate'
+      responses:
+        "201":
+          description: Member created successfully
+          headers:
+            Location:
+              description: URL of the created member
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /members/{memberId}:
+    parameters:
+      - $ref: '#/components/parameters/memberId'
+    
+    get:
+      summary: Get a specific member
+      responses:
+        "200":
+          description: Member details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        "404":
+          description: Member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update a specific member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberUpdate'
+      responses:
+        "200":
+          description: Member updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: Member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a specific member
+      responses:
+        "204":
+          description: Member deleted successfully
+        "404":
+          description: Member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "409":
+          description: Cannot delete member with active loans
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /loans:
+    get:
+      summary: Get all loans
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: active
+          in: query
+          description: Filter active loans only
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of loans
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanCollection'
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new loan (borrow book)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanCreate'
+      responses:
+        "201":
+          description: Loan created successfully
+          headers:
+            Location:
+              description: URL of the created loan
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: Book or member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "409":
+          description: Book not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /loans/{loanId}:
+    parameters:
+      - $ref: '#/components/parameters/loanId'
+    
+    get:
+      summary: Get a specific loan
+      responses:
+        "200":
+          description: Loan details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+        "404":
+          description: Loan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /loans/{loanId}/return:
+    parameters:
+      - $ref: '#/components/parameters/loanId'
+    
+    post:
+      summary: Return a borrowed book
+      responses:
+        "200":
+          description: Book returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+        "404":
+          description: Loan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "409":
+          description: Book already returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  parameters:
+    bookId:
+      name: bookId
+      in: path
+      required: true
+      description: The ID of the book
+      schema:
+        type: integer
+        example: 1
+
+    memberId:
+      name: memberId
+      in: path
+      required: true
+      description: The ID of the member
+      schema:
+        type: integer
+        example: 1
+
+    loanId:
+      name: loanId
+      in: path
+      required: true
+      description: The ID of the loan
+      schema:
+        type: integer
+        example: 1
+
+  schemas:
+    Book:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Python Programming"
+        author:
+          type: string
+          example: "John Doe"
+        year:
+          type: integer
+          example: 2023
+        total_copies:
+          type: integer
+          example: 5
+        available_copies:
+          type: integer
+          example: 3
+        updated:
+          type: string
+          format: date-time
+          example: "2024-01-01T10:00:00Z"
+        _links:
+          $ref: '#/components/schemas/BookLinks'
+    
+    BookCreate:
+      type: object
+      required: [title, author]
+      properties:
+        title:
+          type: string
+          example: "Flask Web Development"
+        author:
+          type: string
+          example: "Miguel Grinberg"
+        year:
+          type: integer
+          example: 2024
+        total_copies:
+          type: integer
+          example: 3
+          default: 1
+
+    BookUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "Flask Web Development - 2nd Edition"
+        author:
+          type: string
+          example: "Miguel Grinberg"
+        year:
+          type: integer
+          example: 2024
+        total_copies:
+          type: integer
+          example: 5
+
+    BookLinks:
+      type: object
+      properties:
+        self:
+          type: string
+          example: "/api/books/1"
+        collection:
+          type: string
+          example: "/api/books"
+        update:
+          type: string
+          example: "/api/books/1"
+        delete:
+          type: string
+          example: "/api/books/1"
+
+    BookCollection:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Book'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+        _links:
+          $ref: '#/components/schemas/CollectionLinks'
+
+    Member:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        _links:
+          $ref: '#/components/schemas/MemberLinks'
+    
+    MemberCreate:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+          example: "Jane Smith"
+        email:
+          type: string
+          format: email
+          example: "jane.smith@example.com"
+
+    MemberUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Jane Doe"
+        email:
+          type: string
+          format: email
+          example: "jane.doe@example.com"
+
+    MemberLinks:
+      type: object
+      properties:
+        self:
+          type: string
+          example: "/api/members/1"
+        collection:
+          type: string
+          example: "/api/members"
+        update:
+          type: string
+          example: "/api/members/1"
+        delete:
+          type: string
+          example: "/api/members/1"
+
+    MemberCollection:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Member'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+        _links:
+          $ref: '#/components/schemas/CollectionLinks'
+
+    Loan:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        book_id:
+          type: integer
+          example: 1
+        member_id:
+          type: integer
+          example: 1
+        borrowed_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T10:00:00Z"
+        due_date:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:00:00Z"
+        returned_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        is_active:
+          type: boolean
+          example: true
+        book:
+          $ref: '#/components/schemas/Book'
+        member:
+          $ref: '#/components/schemas/Member'
+        _links:
+          $ref: '#/components/schemas/LoanLinks'
+    
+    LoanCreate:
+      type: object
+      required: [book_id, member_id]
+      properties:
+        book_id:
+          type: integer
+          example: 1
+        member_id:
+          type: integer
+          example: 1
+        days:
+          type: integer
+          example: 14
+          default: 14
+
+    LoanLinks:
+      type: object
+      properties:
+        self:
+          type: string
+          example: "/api/loans/1"
+        collection:
+          type: string
+          example: "/api/loans"
+        return:
+          type: string
+          example: "/api/loans/1/return"
+          description: "Only present for active loans"
+
+    LoanCollection:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Loan'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+        _links:
+          $ref: '#/components/schemas/CollectionLinks'
+
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 10
+        total_items:
+          type: integer
+          example: 25
+        total_pages:
+          type: integer
+          example: 3
+
+    CollectionLinks:
+      type: object
+      properties:
+        self:
+          type: string
+          example: "/api/books?page=1&per_page=10"
+        first:
+          type: string
+          example: "/api/books?page=1&per_page=10"
+        last:
+          type: string
+          example: "/api/books?page=3&per_page=10"
+        prev:
+          type: string
+          nullable: true
+          example: null
+        next:
+          type: string
+          nullable: true
+          example: "/api/books?page=2&per_page=10"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Not Found"
+        message:
+          type: string
+          example: "Book with id 999 does not exist"
+        code:
+          type: string
+          example: "BOOK_NOT_FOUND"
+        _links:
+          type: object
+          properties:
+            collection:
+              type: string
+              example: "/api/books"

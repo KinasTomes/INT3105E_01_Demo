@@ -36,6 +36,10 @@ fake_db = [
 # Định nghĩa các endpoint
 # ------------------------
 
+@app.get("/", include_in_schema=False)
+def home():
+    return {"message": "FastAPI User Management API đang chạy! Truy cập /docs để xem Swagger UI."}
+
 @app.get("/users", response_model=List[User], summary="Lấy danh sách người dùng")
 def get_users():
     """
@@ -62,3 +66,9 @@ def create_user(user: User):
     """
     fake_db.append(user)
     return user
+
+# Chạy ứng dụng với: uvicorn main:app --reload
+if __name__ == '__main__':
+    import uvicorn
+    print("=== FastAPI User Management API ===")
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
