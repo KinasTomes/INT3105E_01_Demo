@@ -120,7 +120,7 @@ components:
             totalPages:
               type: integer
               example: 3
-        required: [data, meta]
+      required: [data, meta]
 
 paths:
   /products:

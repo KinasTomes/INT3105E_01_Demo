@@ -1,0 +1,450 @@
+openapi: 3.1.0
+info:
+  description: |
+    CRUD API for managing Products. Secured with Bearer (JWT).
+  title: Product API
+  version: 1.0.0
+servers:
+- description: Production
+  url: https://api.example.com
+- description: Local
+  url: http://localhost:8080
+security:
+- bearerAuth: []
+paths:
+  /products:
+    get:
+      operationId: listProducts
+      parameters:
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          minimum: 1
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: pageSize
+        required: false
+        schema:
+          default: 20
+          maximum: 50
+          minimum: 1
+          type: integer
+        style: form
+      - description: Optional name/keyword search
+        explode: true
+        in: query
+        name: q
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Unauthorized
+      summary: List products in page
+    post:
+      operationId: createProduct
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example:
+                value:
+                  name: Keyboard
+                  price: 49.9
+                  stock: 100
+                  description: RGB mechanical
+            schema:
+              $ref: "#/components/schemas/ProductCreate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+          description: Created
+          headers:
+            Location:
+              description: URL of the created resource
+              explode: false
+              schema:
+                type: string
+              style: simple
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Unauthorized
+      summary: Create a product
+      tags:
+      - Products
+  /products/{id}:
+    delete:
+      operationId: deleteProduct
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Not Found
+      summary: Delete product
+      tags:
+      - Products
+    get:
+      operationId: getProduct
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Not Found
+      summary: Get product by ID
+      tags:
+      - Products
+    parameters:
+    - explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        format: int64
+        type: integer
+      style: simple
+    patch:
+      operationId: updateProduct
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Not Found
+      summary: Update product partially
+      tags:
+      - Products
+    put:
+      operationId: replaceProduct
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCreate"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Not Found
+      summary: Replace product
+      tags:
+      - Products
+components:
+  schemas:
+    Error:
+      example:
+        code: INVALID_INPUT
+        details: ""
+        message: Validation failed
+      properties:
+        code:
+          example: INVALID_INPUT
+          title: code
+          type: string
+        message:
+          example: Validation failed
+          title: message
+          type: string
+        details:
+          title: details
+      required:
+      - code
+      - message
+      title: Error
+    Product:
+      example:
+        createdAt: 2025-11-04T09:30:00Z
+        price: 1999.99
+        name: MacBook Pro 14
+        description: "2025 model, M4 chip"
+        id: 123
+        stock: 12
+        updatedAt: 2025-11-04T10:00:00Z
+      properties:
+        id:
+          example: 123
+          format: int64
+          title: id
+          type: integer
+        name:
+          example: MacBook Pro 14
+          title: name
+          type: string
+        price:
+          example: 1999.99
+          format: float
+          title: price
+          type: number
+        stock:
+          example: 12
+          title: stock
+          type: integer
+        description:
+          example: "2025 model, M4 chip"
+          title: description
+          type: string
+          nullable: true
+        createdAt:
+          example: 2025-11-04T09:30:00Z
+          format: date-time
+          title: createdAt
+          type: string
+        updatedAt:
+          example: 2025-11-04T10:00:00Z
+          format: date-time
+          title: updatedAt
+          type: string
+      required:
+      - createdAt
+      - id
+      - name
+      - price
+      - stock
+      - updatedAt
+      title: Product
+    ProductCreate:
+      example:
+        price: 0.8008282
+        name: name
+        description: description
+        stock: 6
+      properties:
+        name:
+          title: name
+          type: string
+        price:
+          format: float
+          title: price
+          type: number
+        stock:
+          default: 0
+          title: stock
+          type: integer
+        description:
+          title: description
+          type: string
+          nullable: true
+      required:
+      - name
+      - price
+      title: ProductCreate
+    ProductUpdate:
+      additionalProperties: false
+      example:
+        price: 0.8008282
+        name: name
+        description: description
+        stock: 6
+      properties:
+        name:
+          title: name
+          type: string
+        price:
+          format: float
+          title: price
+          type: number
+        stock:
+          title: stock
+          type: integer
+        description:
+          title: description
+          type: string
+          nullable: true
+      title: ProductUpdate
+    ProductListResponse:
+      example:
+        data:
+        - createdAt: 2025-11-04T09:30:00Z
+          price: 1999.99
+          name: MacBook Pro 14
+          description: "2025 model, M4 chip"
+          id: 123
+          stock: 12
+          updatedAt: 2025-11-04T10:00:00Z
+        - createdAt: 2025-11-04T09:30:00Z
+          price: 1999.99
+          name: MacBook Pro 14
+          description: "2025 model, M4 chip"
+          id: 123
+          stock: 12
+          updatedAt: 2025-11-04T10:00:00Z
+        meta:
+          totalItems: 57
+          totalPages: 3
+          pageSize: 20
+          page: 1
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/Product"
+          title: data
+          type: array
+        meta:
+          $ref: "#/components/schemas/ProductListResponse_meta"
+      required:
+      - data
+      - meta
+      title: ProductListResponse
+    ProductListResponse_meta:
+      example:
+        totalItems: 57
+        totalPages: 3
+        pageSize: 20
+        page: 1
+      properties:
+        page:
+          example: 1
+          title: page
+          type: integer
+        pageSize:
+          example: 20
+          title: pageSize
+          type: integer
+        totalItems:
+          example: 57
+          title: totalItems
+          type: integer
+        totalPages:
+          example: 3
+          title: totalPages
+          type: integer
+      title: ProductListResponse_meta
+  securitySchemes:
+    bearerAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
