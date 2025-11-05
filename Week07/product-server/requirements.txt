@@ -2,6 +2,7 @@ aiofiles==23.1.0
 aniso8601==7.0.0
 async-exit-stack==1.0.1
 async-generator==1.10
+bcrypt==4.1.2
 certifi==2024.7.4
 chardet==4.0.0
 click==7.1.2
@@ -19,9 +20,11 @@ itsdangerous==1.1.0
 Jinja2==3.1.4
 MarkupSafe==2.0.1
 motor==3.3.2
+passlib[bcrypt]==1.7.4
 promise==2.3
 pydantic>=2
 pydantic-settings==2.1.0
+PyJWT==2.8.0
 python-dotenv==0.17.1
 python-multipart==0.0.18
 PyYAML>=5.4.1,<6.1.0

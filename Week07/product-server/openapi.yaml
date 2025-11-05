@@ -12,6 +12,63 @@ servers:
 security:
 - bearerAuth: []
 paths:
+  /auth/login:
+    post:
+      description: Authenticate user and receive access token and refresh token
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            example:
+              username: admin
+              password: admin123
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+          description: Login successful
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Invalid credentials
+      security: []
+      summary: User login
+      tags:
+      - Authentication
+  /auth/refresh:
+    post:
+      description: Exchange refresh token for a new access token
+      operationId: refreshToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+          description: Token refreshed successfully
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Invalid or expired refresh token
+      security: []
+      summary: Refresh access token
+      tags:
+      - Authentication
   /products:
     get:
       operationId: listProducts
@@ -265,6 +322,67 @@ paths:
       - Products
 components:
   schemas:
+    LoginRequest:
+      example:
+        password: admin123
+        username: admin
+      properties:
+        username:
+          example: admin
+          title: username
+          type: string
+        password:
+          example: admin123
+          format: password
+          title: password
+          type: string
+      required:
+      - password
+      - username
+      title: LoginRequest
+    TokenResponse:
+      example:
+        access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type: bearer
+        expires_in: 900
+      properties:
+        access_token:
+          description: JWT access token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          title: access_token
+          type: string
+        refresh_token:
+          description: "JWT refresh token (optional, only returned on login)"
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          title: refresh_token
+          type: string
+        token_type:
+          default: bearer
+          example: bearer
+          title: token_type
+          type: string
+        expires_in:
+          description: Token expiration time in seconds
+          example: 900
+          title: expires_in
+          type: integer
+      required:
+      - access_token
+      - token_type
+      title: TokenResponse
+    RefreshRequest:
+      example:
+        refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      properties:
+        refresh_token:
+          description: The refresh token received during login
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          title: refresh_token
+          type: string
+      required:
+      - refresh_token
+      title: RefreshRequest
     Error:
       example:
         code: INVALID_INPUT
@@ -411,7 +529,6 @@ components:
         data:
           items:
             $ref: "#/components/schemas/Product"
-          title: data
           type: array
         meta:
           $ref: "#/components/schemas/ProductListResponse_meta"
