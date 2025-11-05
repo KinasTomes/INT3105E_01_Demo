@@ -17,11 +17,13 @@ from fastapi import FastAPI
 from openapi_server.apis.authentication_api import router as AuthenticationApiRouter
 from openapi_server.apis.products_api import router as ProductsApiRouter
 from openapi_server.apis.default_api import router as DefaultApiRouter
+from .lifespan import lifespan
 
 app = FastAPI(
     title="Product API",
     description="CRUD API for managing Products. Secured with Bearer (JWT). ",
     version="1.0.0",
+    lifespan=lifespan
 )
 
 app.include_router(AuthenticationApiRouter)

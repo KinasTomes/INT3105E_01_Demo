@@ -8,13 +8,15 @@ import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 from passlib.context import CryptContext
 from datetime import datetime
+from src.openapi_server.general_settings import Settings
+
+settings = Settings()
 
 # Configuration
-MONGO_URL = "mongodb+srv://trinhquanghunglk2014_db_user:<db_password>@testproduct.va2tbdm.mongodb.net/?appName=TestProduct"
-DATABASE_NAME = "my_database"
+MONGO_URL = settings.mongo_url
+DATABASE_NAME = settings.mongo_db_name
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 async def create_users():
     """Create initial users in MongoDB"""

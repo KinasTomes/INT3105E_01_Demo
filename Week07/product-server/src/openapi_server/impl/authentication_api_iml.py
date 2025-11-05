@@ -76,6 +76,15 @@ class AuthenticationApiImpl(BaseAuthenticationApi):
         })
         
         return token
+
+    async def _revoke_user_refresh_tokens(self, user_id: str) -> int:
+        """
+        Revoke all existing refresh tokens for a given user by removing
+        their token metadata records from the database. Returns number revoked.
+        """
+        refresh_tokens_collection = get_collection("refresh_tokens")
+        result = await refresh_tokens_collection.delete_many({"user_id": user_id})
+        return result.deleted_count
     
     async def _verify_refresh_token(self, token: str) -> tuple[str, str]:
         """
@@ -155,6 +164,9 @@ class AuthenticationApiImpl(BaseAuthenticationApi):
         # Get user_id (MongoDB _id or custom id field)
         user_id = str(user.get("_id", user.get("id", username)))
         
+        # Revoke existing refresh tokens for this user (single-session policy)
+        await self._revoke_user_refresh_tokens(user_id)
+
         # Create tokens
         access_token = self._create_access_token(username, user)
         refresh_token = await self._create_refresh_token(user_id, username)

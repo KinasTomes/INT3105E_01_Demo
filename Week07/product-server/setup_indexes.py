@@ -8,10 +8,13 @@ import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import IndexModel, ASCENDING
 
-# Configuration - update with your actual MongoDB URL
-MONGO_URL = "mongodb+srv://trinhquanghunglk2014_db_user:<db_password>@testproduct.va2tbdm.mongodb.net/?appName=TestProduct"
-DATABASE_NAME = "my_database"
+from src.openapi_server.general_settings import Settings
 
+settings = Settings()
+
+# Configuration - update with your actual MongoDB URL
+MONGO_URL = settings.mongo_url
+DATABASE_NAME = settings.mongo_db_name
 
 async def setup_indexes():
     """Create indexes for MongoDB collections"""
