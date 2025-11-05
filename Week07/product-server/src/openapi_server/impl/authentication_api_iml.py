@@ -6,7 +6,7 @@ from passlib.context import CryptContext
 from fastapi import HTTPException, status
 from pydantic_settings import BaseSettings
 
-from .authentication_api_base import BaseAuthenticationApi
+from openapi_server.apis.authentication_api_base import BaseAuthenticationApi
 from openapi_server.models.login_request import LoginRequest
 from openapi_server.models.refresh_request import RefreshRequest
 from openapi_server.models.token_response import TokenResponse

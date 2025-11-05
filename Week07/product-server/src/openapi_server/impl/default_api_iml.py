@@ -4,7 +4,7 @@ from pydantic import Field, StrictStr
 from datetime import datetime
 import math
 
-from .default_api_base import BaseDefaultApi
+from openapi_server.apis.default_api_base import BaseDefaultApi
 from openapi_server.models.product_list_response import ProductListResponse
 from openapi_server.models.product_list_response_meta import ProductListResponseMeta
 from openapi_server.models.product import Product
