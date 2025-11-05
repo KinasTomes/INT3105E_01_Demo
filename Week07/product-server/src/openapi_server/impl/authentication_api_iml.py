@@ -4,7 +4,7 @@ import jwt
 import uuid
 from passlib.context import CryptContext
 from fastapi import HTTPException, status
-from pydantic_settings import BaseSettings
+from openapi_server.general_settings import Settings
 
 from openapi_server.apis.authentication_api_base import BaseAuthenticationApi
 from openapi_server.models.login_request import LoginRequest
@@ -13,19 +13,7 @@ from openapi_server.models.token_response import TokenResponse
 from openapi_server.db import get_collection
 
 
-# Load secrets and token lifetimes from environment (.env)
-class AuthSettings(BaseSettings):
-    access_secret: str = "change-me-replace-in-env"
-    refresh_secret: str = "change-me-replace-in-env"
-    access_token_expire_minutes: int = 15
-    refresh_token_expire_days: int = 7
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-
-
-settings = AuthSettings()
+settings = Settings()
 
 # JWT Configuration (read from settings)
 SECRET_KEY = settings.access_secret

@@ -1,18 +1,9 @@
 # openapi_server/db.py
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic_settings import BaseSettings
+from .general_settings import Settings
 
-class MongoSettings(BaseSettings):
-    # Nó sẽ tự động đọc từ biến môi trường, ví dụ: MONGO_URL=...
-    mongo_url: str = "mongodb://localhost:27017"
-    mongo_db_name: str = "my_database"
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-
-settings = MongoSettings()
+settings = Settings()
 
 class Database:
     client: AsyncIOMotorClient = None
