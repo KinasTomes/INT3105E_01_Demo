@@ -1,0 +1,317 @@
+{
+	"info": {
+		"_postman_id": "c77db957-2ba2-42fb-b957-d0f11d493420",
+		"name": "Products",
+		"description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49489432",
+		"_collection_link": "https://trinhquanghunglk2014-2268270.postman.co/workspace/H%C6%B0ng-Pd's-Workspace~d87f80ca-6ee6-4314-870c-4955cd355382/collection/49489432-c77db957-2ba2-42fb-b957-d0f11d493420?action=share&source=collection_link&creator=49489432"
+	},
+	"item": [
+		{
+			"name": "auth/login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test if response is successful",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Parse the response",
+							"var jsonData = pm.response.json();",
+							"",
+							"// Save access token to environment variable",
+							"if (jsonData.access_token) {",
+							"    pm.environment.set(\"Temp Access Token\", jsonData.access_token);",
+							"    console.log(\"Access token saved:\", jsonData.access_token);",
+							"}",
+							"",
+							"// Save refresh token if available",
+							"if (jsonData.refresh_token) {",
+							"    pm.environment.set(\"Refresh Token\", jsonData.refresh_token);",
+							"    console.log(\"Refresh token saved\");",
+							"}",
+							"",
+							"// Test if tokens are present",
+							"pm.test(\"Access token is present\", function () {",
+							"    pm.expect(jsonData.access_token).to.be.a('string');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"{{username}}\",\r\n  \"password\": \"{{password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/auth/login",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				},
+				"description": "Login endpoint to get access token. The token will be automatically saved to environment variable."
+			},
+			"response": []
+		},
+		{
+			"name": "products",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Temp Access Token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Test Item\",\r\n  \"price\": 36,\r\n  \"stock\": 36,\r\n  \"description\": \"Test\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/products",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"products"
+					]
+				},
+				"description": "Generated from cURL: curl -X 'POST' \\\r\n  'http://localhost:8080/products' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Content-Type: application/json' \\\r\n  -d '{\r\n  \"name\": \"string\",\r\n  \"price\": 0,\r\n  \"stock\": 0,\r\n  \"description\": \"string\"\r\n}'"
+			},
+			"response": []
+		},
+		{
+			"name": "products/{id}",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Temp Access Token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/products/11",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"products",
+						"11"
+					]
+				},
+				"description": "Generated from cURL: curl -X 'GET' \\\r\n  'http://localhost:8080/products/1' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwidHlwZSI6ImFjY2VzcyIsInJvbGUiOiJ1c2VyIiwiZXhwIjoxNzYyMzU4ODg5LCJpYXQiOjE3NjIzNTc5ODl9.ZcyE586_gJUPPn9i9tCHtDnJDkigvFSq2Ng4R1x9FJQ'"
+			},
+			"response": []
+		},
+		{
+			"name": "products/{id}",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Temp Access Token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"string\",\r\n  \"price\": 0,\r\n  \"stock\": 0,\r\n  \"description\": \"string\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/products/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"products",
+						"1"
+					]
+				},
+				"description": "Generated from cURL: curl -X 'PUT' \\\r\n  'http://localhost:8080/products/1' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Authorization: Bearer key' \\\r\n  -H 'Content-Type: application/json' \\\r\n  -d '{\r\n  \"name\": \"string\",\r\n  \"price\": 0,\r\n  \"stock\": 0,\r\n  \"description\": \"string\"\r\n}'"
+			},
+			"response": []
+		},
+		{
+			"name": "products/{id}",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Temp Access Token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/products/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"products",
+						"1"
+					]
+				},
+				"description": "Generated from cURL: curl -X 'DELETE' \\\r\n  'http://localhost:8080/products/1' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Authorization: Bearer key'"
+			},
+			"response": []
+		},
+		{
+			"name": "products/{id}",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Temp Access Token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"string\",\r\n  \"price\": 0,\r\n  \"stock\": 0,\r\n  \"description\": \"string\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/products/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"products",
+						"1"
+					]
+				},
+				"description": "Generated from cURL: curl -X 'PATCH' \\\r\n  'http://localhost:8080/products/1' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Authorization: Bearer key' \\\r\n  -H 'Content-Type: application/json' \\\r\n  -d '{\r\n  \"name\": \"string\",\r\n  \"price\": 0,\r\n  \"stock\": 0,\r\n  \"description\": \"string\"\r\n}'"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": ""
+		},
+		{
+			"key": "Temp Access Token",
+			"value": ""
+		}
+	]
+}

@@ -1,9 +1,39 @@
 version: '3.6'
 services:
+  mongodb:
+    image: mongo:7.0
+    container_name: products_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=product_db
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - products_network
+
   service:
     build:
       context: .
       target: service
     ports:
       - "8080:8080"
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017
+      - MONGO_DB_NAME=product_db
+      - ACCESS_SECRET=oh-my-god-its-john-wick
+      - REFRESH_SECRET=oh-my-god-its-john-wick-again
+      - ACCESS_TOKEN_EXPIRE_MINUTES=15
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
     command: uvicorn openapi_server.main:app --host 0.0.0.0 --port 8080
+    depends_on:
+      - mongodb
+    networks:
+      - products_network
+
+volumes:
+  mongodb_data:
+
+networks:
+  products_network:
+    driver: bridge

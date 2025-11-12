@@ -2,6 +2,7 @@ from typing import Optional, List
 from datetime import datetime
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi import Response
 from pydantic import BaseModel, Field
 
 app = FastAPI(title="Books API (in-memory, search & pagination)")
@@ -51,6 +52,86 @@ def _seed():
             "category_id": 2,
             "description": "From journeyman to master.",
             "authors": [4, 5],
+        },
+        {
+            "title": "Refactoring",
+            "isbn": "978-0201485677",
+            "publish_year": 1999,
+            "category_id": 2,
+            "description": "Improving the design of existing code.",
+            "authors": [6],
+        },
+        {
+            "title": "Working Effectively with Legacy Code",
+            "isbn": "978-0131177055",
+            "publish_year": 2004,
+            "category_id": 2,
+            "description": "Techniques for modifying legacy code safely.",
+            "authors": [7],
+        },
+        {
+            "title": "Introduction to Algorithms",
+            "isbn": "978-0262033848",
+            "publish_year": 2009,
+            "category_id": 3,
+            "description": "Comprehensive algorithms textbook.",
+            "authors": [8, 9, 10],
+        },
+        {
+            "title": "Patterns of Enterprise Application Architecture",
+            "isbn": "978-0321127426",
+            "publish_year": 2002,
+            "category_id": 1,
+            "description": "Enterprise architecture patterns.",
+            "authors": [11],
+        },
+        {
+            "title": "Domain-Driven Design",
+            "isbn": "978-0321125217",
+            "publish_year": 2003,
+            "category_id": 4,
+            "description": "Tackling complexity in the heart of software.",
+            "authors": [12],
+        },
+        {
+            "title": "Code Complete",
+            "isbn": "978-0735619678",
+            "publish_year": 2004,
+            "category_id": 2,
+            "description": "A practical handbook of software construction.",
+            "authors": [13],
+        },
+        {
+            "title": "Algorithms",
+            "isbn": "978-0132131087",
+            "publish_year": 2011,
+            "category_id": 3,
+            "description": "Algorithm design and analysis.",
+            "authors": [14],
+        },
+        {
+            "title": "Head First Design Patterns",
+            "isbn": "978-0596007126",
+            "publish_year": 2004,
+            "category_id": 1,
+            "description": "A brain-friendly guide to design patterns.",
+            "authors": [15, 16],
+        },
+        {
+            "title": "You Don't Know JS",
+            "isbn": "978-1491904244",
+            "publish_year": 2014,
+            "category_id": 5,
+            "description": "A series on JavaScript language details.",
+            "authors": [17],
+        },
+        {
+            "title": "Effective Java",
+            "isbn": "978-0134685991",
+            "publish_year": 2018,
+            "category_id": 2,
+            "description": "Best practices for Java programming.",
+            "authors": [18],
         },
     ]
     for s in samples:
@@ -117,6 +198,15 @@ def get_book(book_id: int):
             return b
     raise HTTPException(status_code=404, detail="Book not found")
 
+@app.delete("/books/{book_id}", status_code=204)
+def delete_book(book_id: int):
+    """Delete a book by id. Returns 204 No Content on success."""
+    for idx, b in enumerate(_books_db):
+        if b.id == book_id:
+            _books_db.pop(idx)
+            return Response(status_code=204)
+    raise HTTPException(status_code=404, detail="Book not found")
+
 
 class BookCreate(BaseModel):
     title: str
@@ -131,6 +221,6 @@ class BookCreate(BaseModel):
 def create_book(payload: BookCreate):
     global _next_id
     b = Book(id=_next_id, **payload.dict())
-    _books_db.append(b)
+    _books_db.insert(0, b)
     _next_id += 1
     return b
