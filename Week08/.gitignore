@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Locust reports
+*_test_report.html
+*_test_*.html
+*_test_stats.csv
+*_test_stats_history.csv
+*_test_failures.csv
+*_test_exceptions.csv
+test_results*.csv
+smoke_test_*
+load_test_*
+stress_test_*
+spike_test_*
+endurance_test_*
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

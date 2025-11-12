@@ -36,3 +36,6 @@ urllib3==2.5.0
 uvicorn==0.13.4
 watchgod==0.7
 websockets==10.0
+
+# Load Testing
+locust==2.15.1
