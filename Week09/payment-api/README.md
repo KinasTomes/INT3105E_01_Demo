@@ -9,6 +9,7 @@ payment-api/
 ├── main.py                 # Entry point của ứng dụng
 ├── requirements.txt        # Dependencies
 ├── openapi_v1.yaml        # OpenAPI spec cho v1
+├── openapi_v2.yaml        # OpenAPI spec cho v2
 ├── api/
 │   ├── v1/
 │   │   ├── __init__.py
@@ -90,9 +91,80 @@ GET /api/v1/payments/{payment_id}
 GET /api/v1/payments
 ```
 
-### API v2 (`/api/v2`)
+### API v2 (`/api/v2`) - Enhanced Version
 
-Coming soon - Sẽ có các tính năng nâng cao.
+#### Tạo thanh toán với thông tin mở rộng
+```http
+POST /api/v2/payments
+Content-Type: application/json
+
+{
+  "amount": 100000,
+  "currency": "VND",
+  "description": "Thanh toán đơn hàng #123",
+  "customer": {
+    "name": "Nguyễn Văn A",
+    "email": "nguyenvana@example.com",
+    "phone": "0901234567"
+  },
+  "metadata": {
+    "order_id": "ORD-123",
+    "product": "Laptop Dell XPS 13"
+  },
+  "webhook_url": "https://example.com/webhook"
+}
+```
+
+#### Xem thông tin thanh toán (v2)
+```http
+GET /api/v2/payments/{payment_id}
+```
+
+#### Liệt kê thanh toán với phân trang và filter
+```http
+GET /api/v2/payments?limit=10&offset=0&status=pending&currency=VND
+```
+
+#### Cập nhật trạng thái thanh toán (NEW)
+```http
+PATCH /api/v2/payments/{payment_id}
+Content-Type: application/json
+
+{
+  "status": "completed"
+}
+```
+
+#### Hủy thanh toán (NEW)
+```http
+DELETE /api/v2/payments/{payment_id}
+```
+
+#### Đăng ký webhook (NEW)
+```http
+POST /api/v2/webhooks
+Content-Type: application/json
+
+{
+  "url": "https://example.com/webhook",
+  "events": ["payment.completed", "payment.failed"]
+}
+```
+
+### So sánh v1 vs v2
+
+| Tính năng | v1 | v2 |
+|-----------|----|----|
+| Tạo thanh toán | ✅ | ✅ |
+| Xem thanh toán | ✅ | ✅ |
+| Liệt kê thanh toán | ✅ | ✅ (với pagination) |
+| Thông tin khách hàng | ❌ | ✅ |
+| Metadata tùy chỉnh | ❌ | ✅ |
+| Cập nhật trạng thái | ❌ | ✅ |
+| Hủy thanh toán | ❌ | ✅ |
+| Webhook notifications | ❌ | ✅ |
+| Phân trang | ❌ | ✅ |
+| Filter | ❌ | ✅ |
 
 ## Phases Hoàn thành
 
@@ -111,23 +183,73 @@ Coming soon - Sẽ có các tính năng nâng cao.
 - Mô tả đầy đủ endpoints
 - Examples và schemas
 
+✅ **PHASE 4** — Implement API v1 (mock)
+- Các endpoint v1 hoạt động đầy đủ
+- In-memory storage cho demo
+- Response theo đúng spec
+
+✅ **PHASE 5** — Implement API v2 (mock)
+- Các endpoint v2 với tính năng nâng cao
+- OpenAPI specification cho v2
+- Thể hiện rõ breaking changes và improvements
+
 ## Testing với curl
 
-### Tạo thanh toán
+### API v1 Examples
+
+#### Tạo thanh toán
 ```bash
 curl -X POST "http://localhost:8000/api/v1/payments" \
   -H "Content-Type: application/json" \
   -d "{\"amount\": 100000, \"currency\": \"VND\", \"description\": \"Test payment\"}"
 ```
 
-### Xem thanh toán
+#### Xem thanh toán
 ```bash
 curl "http://localhost:8000/api/v1/payments/1"
 ```
 
-### Liệt kê thanh toán
+#### Liệt kê thanh toán
 ```bash
 curl "http://localhost:8000/api/v1/payments"
+```
+
+### API v2 Examples
+
+#### Tạo thanh toán với thông tin đầy đủ
+```bash
+curl -X POST "http://localhost:8000/api/v2/payments" \
+  -H "Content-Type: application/json" \
+  -d "{\"amount\": 100000, \"currency\": \"VND\", \"description\": \"Test payment v2\", \"customer\": {\"name\": \"Nguyen Van A\", \"email\": \"test@example.com\", \"phone\": \"0901234567\"}, \"metadata\": {\"order_id\": \"ORD-123\"}}"
+```
+
+#### Liệt kê với phân trang
+```bash
+curl "http://localhost:8000/api/v2/payments?limit=5&offset=0"
+```
+
+#### Filter theo status
+```bash
+curl "http://localhost:8000/api/v2/payments?status=pending"
+```
+
+#### Cập nhật trạng thái
+```bash
+curl -X PATCH "http://localhost:8000/api/v2/payments/1" \
+  -H "Content-Type: application/json" \
+  -d "{\"status\": \"completed\"}"
+```
+
+#### Hủy thanh toán
+```bash
+curl -X DELETE "http://localhost:8000/api/v2/payments/1"
+```
+
+#### Đăng ký webhook
+```bash
+curl -X POST "http://localhost:8000/api/v2/webhooks" \
+  -H "Content-Type: application/json" \
+  -d "{\"url\": \"https://example.com/webhook\", \"events\": [\"payment.completed\", \"payment.failed\"]}"
 ```
 
 ## Lưu ý

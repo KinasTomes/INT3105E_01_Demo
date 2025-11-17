@@ -1,0 +1,431 @@
+openapi: 3.0.3
+info:
+  title: Payment API v2
+  description: |
+    API thanh toán phiên bản 2.0 - Enhanced version
+    
+    **Các cải tiến so với v1:**
+    - Thêm trường `customer` để lưu thông tin khách hàng
+    - Thêm trường `metadata` cho dữ liệu tùy chỉnh
+    - Hỗ trợ webhook notifications
+    - Thêm endpoint cập nhật trạng thái thanh toán
+    - Thêm endpoint hủy thanh toán
+    - Phân trang cho danh sách thanh toán
+    - Filter theo status và currency
+    
+    **Breaking changes:**
+    - Response format có thêm các trường mới
+    - List endpoint trả về object với pagination thay vì array đơn giản
+  version: 2.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8000/api/v2
+    description: Development server
+
+tags:
+  - name: payments
+    description: Quản lý thanh toán nâng cao
+  - name: webhooks
+    description: Quản lý webhook notifications
+
+paths:
+  /payments:
+    post:
+      tags:
+        - payments
+      summary: Tạo thanh toán mới (v2)
+      description: |
+        Tạo một giao dịch thanh toán mới với thông tin mở rộng.
+        
+        **Mới trong v2:**
+        - Thêm thông tin khách hàng
+        - Metadata tùy chỉnh
+        - Webhook URL để nhận thông báo
+      operationId: createPaymentV2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequestV2'
+            examples:
+              full:
+                summary: Thanh toán đầy đủ thông tin
+                value:
+                  amount: 100000
+                  currency: VND
+                  description: Thanh toán đơn hàng #123
+                  customer:
+                    name: Nguyễn Văn A
+                    email: nguyenvana@example.com
+                    phone: "0901234567"
+                  metadata:
+                    order_id: "ORD-123"
+                    product: "Laptop Dell XPS 13"
+                  webhook_url: "https://example.com/webhook"
+              minimal:
+                summary: Thanh toán tối thiểu
+                value:
+                  amount: 50000
+                  currency: VND
+      responses:
+        '200':
+          description: Thanh toán được tạo thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponseV2'
+        '400':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    get:
+      tags:
+        - payments
+      summary: Liệt kê thanh toán với phân trang
+      description: |
+        Lấy danh sách các giao dịch thanh toán với hỗ trợ phân trang và filter.
+        
+        **Mới trong v2:**
+        - Phân trang với limit và offset
+        - Filter theo status và currency
+        - Trả về metadata về tổng số records
+      operationId: listPaymentsV2
+      parameters:
+        - name: limit
+          in: query
+          description: Số lượng records trên mỗi trang
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          description: Vị trí bắt đầu
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: status
+          in: query
+          description: Filter theo trạng thái
+          schema:
+            type: string
+            enum: [pending, processing, completed, failed, cancelled]
+        - name: currency
+          in: query
+          description: Filter theo loại tiền tệ
+          schema:
+            type: string
+            example: VND
+      responses:
+        '200':
+          description: Danh sách thanh toán với pagination
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentListResponse'
+
+  /payments/{payment_id}:
+    get:
+      tags:
+        - payments
+      summary: Xem thông tin thanh toán (v2)
+      description: Lấy chi tiết của một giao dịch thanh toán theo ID với thông tin mở rộng
+      operationId: getPaymentV2
+      parameters:
+        - name: payment_id
+          in: path
+          required: true
+          description: ID của thanh toán
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Thông tin thanh toán
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponseV2'
+        '404':
+          description: Không tìm thấy thanh toán
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    patch:
+      tags:
+        - payments
+      summary: Cập nhật trạng thái thanh toán
+      description: |
+        Cập nhật trạng thái của một thanh toán.
+        
+        **Mới trong v2:** Endpoint này không có trong v1
+      operationId: updatePaymentStatus
+      parameters:
+        - name: payment_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [processing, completed, failed]
+            examples:
+              complete:
+                value:
+                  status: completed
+      responses:
+        '200':
+          description: Cập nhật thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponseV2'
+        '404':
+          description: Không tìm thấy thanh toán
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      tags:
+        - payments
+      summary: Hủy thanh toán
+      description: |
+        Hủy một thanh toán đang ở trạng thái pending.
+        
+        **Mới trong v2:** Endpoint này không có trong v1
+      operationId: cancelPayment
+      parameters:
+        - name: payment_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Hủy thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Payment cancelled successfully
+                  payment:
+                    $ref: '#/components/schemas/PaymentResponseV2'
+        '400':
+          description: Không thể hủy thanh toán
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy thanh toán
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /webhooks:
+    post:
+      tags:
+        - webhooks
+      summary: Đăng ký webhook
+      description: |
+        Đăng ký một webhook URL để nhận thông báo về các sự kiện thanh toán.
+        
+        **Mới trong v2:** Tính năng webhook hoàn toàn mới
+      operationId: registerWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+                - events
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  example: "https://example.com/webhook"
+                events:
+                  type: array
+                  items:
+                    type: string
+                    enum: [payment.created, payment.completed, payment.failed, payment.cancelled]
+                  example: ["payment.completed", "payment.failed"]
+      responses:
+        '200':
+          description: Webhook đăng ký thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  webhook_id:
+                    type: string
+                    example: "wh_123456"
+                  url:
+                    type: string
+                  events:
+                    type: array
+                    items:
+                      type: string
+
+components:
+  schemas:
+    CustomerInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Nguyễn Văn A
+        email:
+          type: string
+          format: email
+          example: nguyenvana@example.com
+        phone:
+          type: string
+          example: "0901234567"
+    
+    PaymentRequestV2:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+          format: float
+          description: Số tiền thanh toán
+          example: 100000
+        currency:
+          type: string
+          description: Đơn vị tiền tệ
+          default: VND
+          example: VND
+        description:
+          type: string
+          description: Mô tả giao dịch
+          example: Thanh toán đơn hàng #123
+        customer:
+          $ref: '#/components/schemas/CustomerInfo'
+        metadata:
+          type: object
+          description: Dữ liệu tùy chỉnh
+          additionalProperties: true
+          example:
+            order_id: "ORD-123"
+            product: "Laptop"
+        webhook_url:
+          type: string
+          format: uri
+          description: URL để nhận webhook notifications
+          example: "https://example.com/webhook"
+    
+    PaymentResponseV2:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID duy nhất của thanh toán
+          example: 1
+        amount:
+          type: number
+          format: float
+          description: Số tiền thanh toán
+          example: 100000
+        currency:
+          type: string
+          description: Đơn vị tiền tệ
+          example: VND
+        description:
+          type: string
+          description: Mô tả giao dịch
+          example: Thanh toán đơn hàng #123
+        status:
+          type: string
+          description: Trạng thái thanh toán
+          enum:
+            - pending
+            - processing
+            - completed
+            - failed
+            - cancelled
+          example: pending
+        customer:
+          $ref: '#/components/schemas/CustomerInfo'
+        metadata:
+          type: object
+          additionalProperties: true
+        webhook_url:
+          type: string
+          format: uri
+        created_at:
+          type: string
+          format: date-time
+          description: Thời gian tạo thanh toán
+          example: "2025-11-19T10:30:00"
+        updated_at:
+          type: string
+          format: date-time
+          description: Thời gian cập nhật cuối
+          example: "2025-11-19T10:35:00"
+    
+    PaymentListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentResponseV2'
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Tổng số records
+              example: 100
+            limit:
+              type: integer
+              description: Số records trên trang
+              example: 10
+            offset:
+              type: integer
+              description: Vị trí bắt đầu
+              example: 0
+            has_more:
+              type: boolean
+              description: Còn records tiếp theo không
+              example: true
+    
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Mô tả lỗi
+          example: Payment not found
