@@ -9,38 +9,49 @@
 	},
 	"item": [
 		{
-			"name": "auth/login",
+			"name": "Login",
 			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"// Test if response is successful",
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"// Parse the response",
-							"var jsonData = pm.response.json();",
-							"",
-							"// Save access token to environment variable",
-							"if (jsonData.access_token) {",
-							"    pm.environment.set(\"Temp Access Token\", jsonData.access_token);",
-							"    console.log(\"Access token saved:\", jsonData.access_token);",
-							"}",
-							"",
-							"// Save refresh token if available",
-							"if (jsonData.refresh_token) {",
-							"    pm.environment.set(\"Refresh Token\", jsonData.refresh_token);",
-							"    console.log(\"Refresh token saved\");",
-							"}",
-							"",
-							"// Test if tokens are present",
-							"pm.test(\"Access token is present\", function () {",
-							"    pm.expect(jsonData.access_token).to.be.a('string');",
-							"});"
+							"let res = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response contains access_token\", () => {\r",
+							"    pm.expect(res).to.have.property(\"access_token\");\r",
+							"});\r",
+							"\r",
+							"// Lưu access_token vào collection\r",
+							"if (res.access_token) {\r",
+							"    pm.collectionVariables.set(\"access_token\", res.access_token);\r",
+							"    console.log(\"✅ Access token saved.\");\r",
+							"} else {\r",
+							"    console.error(\"❌ No access_token found.\");\r",
+							"}\r",
+							"\r",
+							"// (Tùy chọn) Lưu refresh_token\r",
+							"if (res.refresh_token) {\r",
+							"    pm.collectionVariables.set(\"refresh_token\", res.refresh_token);\r",
+							"}"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
 					}
 				}
 			],
@@ -75,19 +86,44 @@
 						"login"
 					]
 				},
-				"description": "Login endpoint to get access token. The token will be automatically saved to environment variable."
+				"description": "Generated from cURL: curl -X 'POST' \\\r\n  'http://localhost:8080/auth/login' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Content-Type: application/json' \\\r\n  -d '{\r\n  \"username\": \"user\",\r\n  \"password\": \"user123\"\r\n}'"
 			},
 			"response": []
 		},
 		{
-			"name": "products",
+			"name": "Add new product",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 or 201 (Created)\", () => {\r",
+							"    pm.expect([200, 201]).to.include(pm.response.code);\r",
+							"});\r",
+							"\r",
+							"const res = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Response has product id\", () => {\r",
+							"    pm.expect(res).to.have.property(\"id\");\r",
+							"});\r",
+							"\r",
+							"// Lưu id sản phẩm tạo ra để dùng cho test sau\r",
+							"pm.collectionVariables.set(\"product_id\", res.id);\r",
+							"console.log(\"🆔 Saved product_id:\", res.id);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "bearer",
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{Temp Access Token}}",
+							"value": "{{access_token}}",
 							"type": "string"
 						}
 					]
@@ -117,14 +153,46 @@
 			"response": []
 		},
 		{
-			"name": "products/{id}",
+			"name": "Get product by ID",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const res = pm.response.json();\r",
+							"pm.test(\"Product name exists\", () => {\r",
+							"    pm.expect(res).to.have.property(\"name\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "bearer",
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{Temp Access Token}}",
+							"value": "{{access_token}}",
 							"type": "string"
 						}
 					]
@@ -132,13 +200,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{baseURL}}/products/11",
+					"raw": "{{baseURL}}/products/{{product_id}}",
 					"host": [
 						"{{baseURL}}"
 					],
 					"path": [
 						"products",
-						"11"
+						"{{product_id}}"
 					]
 				},
 				"description": "Generated from cURL: curl -X 'GET' \\\r\n  'http://localhost:8080/products/1' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwidHlwZSI6ImFjY2VzcyIsInJvbGUiOiJ1c2VyIiwiZXhwIjoxNzYyMzU4ODg5LCJpYXQiOjE3NjIzNTc5ODl9.ZcyE586_gJUPPn9i9tCHtDnJDkigvFSq2Ng4R1x9FJQ'"
@@ -146,14 +214,43 @@
 			"response": []
 		},
 		{
-			"name": "products/{id}",
+			"name": "Update product",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 (Updated)\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"Update response contains name field\", () => {\r",
+							"    pm.expect(pm.response.json()).to.have.property(\"name\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "bearer",
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{Temp Access Token}}",
+							"value": "{{access_token}}",
 							"type": "string"
 						}
 					]
@@ -179,7 +276,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/products/1",
+					"raw": "http://localhost:8080/products/{{product_id}}",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -187,7 +284,7 @@
 					"port": "8080",
 					"path": [
 						"products",
-						"1"
+						"{{product_id}}"
 					]
 				},
 				"description": "Generated from cURL: curl -X 'PUT' \\\r\n  'http://localhost:8080/products/1' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Authorization: Bearer key' \\\r\n  -H 'Content-Type: application/json' \\\r\n  -d '{\r\n  \"name\": \"string\",\r\n  \"price\": 0,\r\n  \"stock\": 0,\r\n  \"description\": \"string\"\r\n}'"
@@ -195,50 +292,40 @@
 			"response": []
 		},
 		{
-			"name": "products/{id}",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{Temp Access Token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "accept",
-						"value": "application/json"
+			"name": "Partial Update",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
 					}
-				],
-				"url": {
-					"raw": "http://localhost:8080/products/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"products",
-						"1"
-					]
 				},
-				"description": "Generated from cURL: curl -X 'DELETE' \\\r\n  'http://localhost:8080/products/1' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Authorization: Bearer key'"
-			},
-			"response": []
-		},
-		{
-			"name": "products/{id}",
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 (Patched)\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "bearer",
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{Temp Access Token}}",
+							"value": "{{access_token}}",
 							"type": "string"
 						}
 					]
@@ -264,7 +351,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/products/1",
+					"raw": "http://localhost:8080/products/{{product_id}}",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -272,10 +359,73 @@
 					"port": "8080",
 					"path": [
 						"products",
-						"1"
+						"{{product_id}}"
 					]
 				},
 				"description": "Generated from cURL: curl -X 'PATCH' \\\r\n  'http://localhost:8080/products/1' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Authorization: Bearer key' \\\r\n  -H 'Content-Type: application/json' \\\r\n  -d '{\r\n  \"name\": \"string\",\r\n  \"price\": 0,\r\n  \"stock\": 0,\r\n  \"description\": \"string\"\r\n}'"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Product",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 or 204 (Deleted)\", () => {\r",
+							"    pm.expect([200, 204]).to.include(pm.response.code);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/products/{{product_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"products",
+						"{{product_id}}"
+					]
+				},
+				"description": "Generated from cURL: curl -X 'DELETE' \\\r\n  'http://localhost:8080/products/1' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Authorization: Bearer key'"
 			},
 			"response": []
 		}
@@ -307,11 +457,23 @@
 	"variable": [
 		{
 			"key": "baseURL",
-			"value": ""
+			"value": "http://localhost:8080"
 		},
 		{
-			"key": "Temp Access Token",
-			"value": ""
+			"key": "username",
+			"value": "user"
+		},
+		{
+			"key": "password",
+			"value": "user123"
+		},
+		{
+			"key": "access_token",
+			"value": "1"
+		},
+		{
+			"key": "product_id",
+			"value": "1"
 		}
 	]
 }

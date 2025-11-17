@@ -1,0 +1,191 @@
+openapi: 3.0.3
+info:
+  title: Payment API v1
+  description: |
+    API thanh toán phiên bản 1.0
+    
+    Cung cấp các chức năng cơ bản:
+    - Tạo thanh toán mới
+    - Xem thông tin thanh toán
+    - Liệt kê tất cả thanh toán
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Development server
+
+tags:
+  - name: payments
+    description: Quản lý thanh toán
+
+paths:
+  /payments:
+    post:
+      tags:
+        - payments
+      summary: Tạo thanh toán mới
+      description: Tạo một giao dịch thanh toán mới với số tiền và mô tả
+      operationId: createPayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+            examples:
+              basic:
+                summary: Thanh toán cơ bản
+                value:
+                  amount: 100000
+                  currency: VND
+                  description: Thanh toán đơn hàng #123
+      responses:
+        '200':
+          description: Thanh toán được tạo thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+              examples:
+                success:
+                  value:
+                    id: 1
+                    amount: 100000
+                    currency: VND
+                    description: Thanh toán đơn hàng #123
+                    status: pending
+                    created_at: "2025-11-19T10:30:00"
+        '400':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    get:
+      tags:
+        - payments
+      summary: Liệt kê tất cả thanh toán
+      description: Lấy danh sách tất cả các giao dịch thanh toán
+      operationId: listPayments
+      responses:
+        '200':
+          description: Danh sách thanh toán
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payments:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaymentResponse'
+
+  /payments/{payment_id}:
+    get:
+      tags:
+        - payments
+      summary: Xem thông tin thanh toán
+      description: Lấy chi tiết của một giao dịch thanh toán theo ID
+      operationId: getPayment
+      parameters:
+        - name: payment_id
+          in: path
+          required: true
+          description: ID của thanh toán
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Thông tin thanh toán
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+              examples:
+                success:
+                  value:
+                    id: 1
+                    amount: 100000
+                    currency: VND
+                    description: Thanh toán đơn hàng #123
+                    status: pending
+                    created_at: "2025-11-19T10:30:00"
+        '404':
+          description: Không tìm thấy thanh toán
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                notFound:
+                  value:
+                    detail: Payment not found
+
+components:
+  schemas:
+    PaymentRequest:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+          format: float
+          description: Số tiền thanh toán
+          example: 100000
+        currency:
+          type: string
+          description: Đơn vị tiền tệ
+          default: VND
+          example: VND
+        description:
+          type: string
+          description: Mô tả giao dịch
+          example: Thanh toán đơn hàng #123
+    
+    PaymentResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID duy nhất của thanh toán
+          example: 1
+        amount:
+          type: number
+          format: float
+          description: Số tiền thanh toán
+          example: 100000
+        currency:
+          type: string
+          description: Đơn vị tiền tệ
+          example: VND
+        description:
+          type: string
+          description: Mô tả giao dịch
+          example: Thanh toán đơn hàng #123
+        status:
+          type: string
+          description: Trạng thái thanh toán
+          enum:
+            - pending
+            - completed
+            - failed
+          example: pending
+        created_at:
+          type: string
+          format: date-time
+          description: Thời gian tạo thanh toán
+          example: "2025-11-19T10:30:00"
+    
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Mô tả lỗi
+          example: Payment not found
