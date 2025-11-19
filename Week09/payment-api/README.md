@@ -63,11 +63,21 @@ Server sẽ chạy tại: http://localhost:8000
 
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
-- **OpenAPI v1 Spec**: `openapi_v1.yaml`
+- **OpenAPI v1 Spec**: `openapi_v1.yaml` ⚠️ DEPRECATED
+- **OpenAPI v2 Spec**: `openapi_v2.yaml`
+- **Migration Guide**: `MIGRATION_GUIDE.md`
 
 ## API Endpoints
 
-### API v1 (`/api/v1`)
+### API v1 (`/api/v1`) ⚠️ DEPRECATED
+
+> **⚠️ WARNING**: API v1 is deprecated and will be sunset on **01/06/2026**.  
+> Please migrate to v2. See [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) for details.
+>
+> All v1 responses include deprecation headers:
+> - `Deprecation: true`
+> - `Sunset: Mon, 01 Jun 2026 00:00:00 GMT`
+> - `Link: </api/v2>; rel="successor-version"`
 
 #### Tạo thanh toán mới
 ```http
@@ -193,6 +203,18 @@ Content-Type: application/json
 - OpenAPI specification cho v2
 - Thể hiện rõ breaking changes và improvements
 
+✅ **PHASE 6** — Thêm Deprecation Header cho v1
+- Deprecation headers trên tất cả v1 responses
+- Sunset date: 01/06/2026
+- Link đến successor version (v2)
+- Warning message cho developers
+
+✅ **PHASE 7** — Viết Migration Guide
+- Tài liệu chi tiết về breaking changes
+- Request/Response mapping v1 → v2
+- Step-by-step migration checklist
+- Code examples và best practices
+
 ## Testing với curl
 
 ### API v1 Examples
@@ -252,8 +274,17 @@ curl -X POST "http://localhost:8000/api/v2/webhooks" \
   -d "{\"url\": \"https://example.com/webhook\", \"events\": [\"payment.completed\", \"payment.failed\"]}"
 ```
 
+## ⚠️ API v1 Deprecation Notice
+
+**API v1 đã được đánh dấu DEPRECATED và sẽ ngừng hoạt động vào 01/06/2026.**
+
+- Tất cả v1 endpoints trả về deprecation headers
+- Không có updates hoặc bug fixes mới cho v1
+- Vui lòng migrate sang v2 càng sớm càng tốt
+- Xem chi tiết tại: [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)
+
 ## Lưu ý
 
 - Dữ liệu được lưu trong memory (in-memory), sẽ mất khi restart server
 - Đây là demo đơn giản, chưa có authentication/authorization
-- API v2 hiện tại chỉ là placeholder cho các tính năng tương lai
+- v1 và v2 có storage riêng biệt (không share data)
