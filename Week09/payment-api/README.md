@@ -6,17 +6,20 @@ Demo API thanh toán với versioning (v1, v2) sử dụng FastAPI.
 
 ```
 payment-api/
-├── main.py                 # Entry point của ứng dụng
+├── main.py                 # Entry point với separate docs
 ├── requirements.txt        # Dependencies
 ├── openapi_v1.yaml        # OpenAPI spec cho v1
 ├── openapi_v2.yaml        # OpenAPI spec cho v2
+├── MIGRATION_GUIDE.md     # Hướng dẫn migration v1 → v2
+├── docs/
+│   └── index.html         # Documentation hub page
 ├── api/
 │   ├── v1/
 │   │   ├── __init__.py
-│   │   └── routes.py      # Routes cho API v1
+│   │   └── routes.py      # Routes cho API v1 (deprecated)
 │   └── v2/
 │       ├── __init__.py
-│       └── routes.py      # Routes cho API v2 (placeholder)
+│       └── routes.py      # Routes cho API v2 (enhanced)
 ```
 
 ## Cài đặt
@@ -59,12 +62,28 @@ uvicorn main:app --reload
 
 Server sẽ chạy tại: http://localhost:8000
 
+**Documentation Hub**: http://localhost:8000/docs (hoặc mở file `docs/index.html`)
+
 ## API Documentation
 
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+### Interactive Documentation
+
+- **Combined Docs**: http://localhost:8000/docs (All versions)
+- **v1 Only** ⚠️: http://localhost:8000/docs/v1 (Deprecated)
+- **v2 Only**: http://localhost:8000/docs/v2 (Recommended)
+- **ReDoc Combined**: http://localhost:8000/redoc
+- **ReDoc v1**: http://localhost:8000/docs/v1/redoc
+- **ReDoc v2**: http://localhost:8000/docs/v2/redoc
+
+### OpenAPI Specifications
+
 - **OpenAPI v1 Spec**: `openapi_v1.yaml` ⚠️ DEPRECATED
 - **OpenAPI v2 Spec**: `openapi_v2.yaml`
+- **v1 JSON**: http://localhost:8000/openapi/v1.json
+- **v2 JSON**: http://localhost:8000/openapi/v2.json
+
+### Guides
+
 - **Migration Guide**: `MIGRATION_GUIDE.md`
 
 ## API Endpoints
@@ -214,6 +233,13 @@ Content-Type: application/json
 - Request/Response mapping v1 → v2
 - Step-by-step migration checklist
 - Code examples và best practices
+
+✅ **PHASE 9** — Tách Swagger UI cho 2 version
+- Separate documentation pages cho v1 và v2
+- `/docs/v1` - API v1 documentation (deprecated)
+- `/docs/v2` - API v2 documentation (recommended)
+- `/docs` - Combined documentation (all versions)
+- Cross-links giữa các versions
 
 ## Testing với curl
 
