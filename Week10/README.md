@@ -9,12 +9,14 @@ API đơn giản để quản lý thư viện được xây dựng bằng FastAP
 - **Quản lý mượn/trả sách**: Mượn sách, trả sách, và xem lịch sử mượn
 - **Dữ liệu mẫu**: Hệ thống tự động khởi tạo một số dữ liệu mẫu khi chạy
 - **Rate Limiting**: Giới hạn 5 requests/phút cho mỗi IP address
+- **Logging**: Ghi log tất cả requests, responses, và operations với Loguru
 
 ## Đặc điểm
 
 ✅ **Đơn giản**: Không cần cài đặt database, không cần cấu hình phức tạp  
 ✅ **Nhanh**: Sử dụng in-memory storage, truy xuất dữ liệu cực nhanh  
 ✅ **Bảo vệ**: Rate limiting tự động chống spam và abuse  
+✅ **Monitoring**: Logging đầy đủ với rotation và compression  
 ⚠️ **Lưu ý**: Dữ liệu sẽ mất khi restart server (chỉ phù hợp cho demo/development)
 
 ## Cài đặt
@@ -34,11 +36,30 @@ pip install -r requirements.txt
 ```
 
 3. Chạy server:
+
+**Cách 1 (Khuyến nghị)**: Sử dụng script start.py (chỉ reload khi file .py thay đổi):
+```bash
+python start.py
+```
+
+**Cách 2**: Trực tiếp với uvicorn (chỉ watch thư mục cụ thể):
+```bash
+uvicorn main:app --reload --reload-dir=. --reload-dir=routers --reload-dir=middleware
+```
+
+**Cách 3**: Reload tất cả files (không khuyến nghị vì sẽ reload cả logs):
 ```bash
 uvicorn main:app --reload
 ```
 
+**Lưu ý**: Uvicorn chỉ hỗ trợ `--reload-dir` để chỉ định thư mục watch, không có cách filter theo extension file.
+
 Server sẽ chạy tại: `http://127.0.0.1:8000`
+
+**Lưu ý**: 
+- **Cách 1** watch các thư mục code (`routers`, `middleware`, root) nhưng không watch thư mục `logs`
+- Server vẫn có thể reload khi file `.py` trong root thay đổi, nhưng không reload khi logs được ghi
+- Nếu vẫn bị reload do logs, hãy di chuyển các file `.py` vào thư mục con riêng
 
 ## Sử dụng
 
@@ -99,6 +120,59 @@ Khi vượt quá giới hạn:
 - **Header**: `Retry-After` cho biết số giây cần đợi
 
 **Lưu ý**: Các endpoint `/docs`, `/redoc`, `/openapi.json`, `/health` không bị giới hạn.
+
+## Logging
+
+Hệ thống sử dụng **Loguru** (tương đương Winston của Node.js) để ghi log:
+
+### Log Files
+
+Tất cả logs được lưu trong thư mục `logs/`:
+
+- **`logs/app.log`**: Logs tổng hợp (INFO, DEBUG, WARNING, ERROR)
+  - Rotation: 10 MB
+  - Retention: 7 ngày
+  - Compression: ZIP
+
+- **`logs/errors.log`**: Chỉ ghi errors (ERROR)
+  - Rotation: 10 MB
+  - Retention: 30 ngày
+  - Compression: ZIP
+
+- **`logs/access.log`**: Access logs (requests/responses)
+  - Rotation: 10 MB
+  - Retention: 7 ngày
+  - Compression: ZIP
+
+### Log Format
+
+**Console output** (có màu):
+```
+2024-12-03 10:15:30 | INFO     | main:read_root:35 - Root endpoint accessed
+→ GET / | IP: 127.0.0.1 | User-Agent: Mozilla/5.0
+✓ GET / | Status: 200 | Time: 0.002s | IP: 127.0.0.1
+```
+
+**File output**:
+```
+2024-12-03 10:15:30 | INFO     | main:read_root:35 - Root endpoint accessed
+```
+
+### Log Levels
+
+- **DEBUG**: Thông tin chi tiết cho debugging
+- **INFO**: Thông tin chung về operations (create, update, delete)
+- **WARNING**: Rate limit violations, validation issues
+- **ERROR**: Lỗi xử lý request
+
+### Các sự kiện được log
+
+✅ Mọi HTTP request/response với status code và thời gian xử lý  
+✅ Tạo/xóa sách, người dùng  
+✅ Mượn/trả sách  
+✅ Rate limit violations  
+✅ Server startup/shutdown  
+✅ Errors và exceptions  
 
 ## Ví dụ sử dụng
 
@@ -186,12 +260,22 @@ Week10/
 │   ├── books.py          # API routes cho quản lý sách
 │   ├── users.py          # API routes cho quản lý người dùng
 │   └── borrows.py        # API routes cho mượn/trả sách
+├── middleware/
+│   ├── __init__.py
+│   └── logging_middleware.py  # Logging middleware
+├── logs/                 # Thư mục chứa log files (auto-created)
+│   ├── app.log          # Logs tổng hợp
+│   ├── errors.log       # Error logs
+│   └── access.log       # Access logs
 ├── main.py               # File chính của ứng dụng
+├── start.py              # Script khởi động (reload chỉ .py files)
 ├── data_store.py         # In-memory data storage (mảng)
 ├── schemas.py            # Pydantic schemas cho validation
 ├── crud.py               # CRUD operations
 ├── rate_limiter.py       # Rate limiting middleware
+├── logger.py             # Logging configuration
 ├── requirements.txt      # Dependencies
+├── .gitignore           # Git ignore (bao gồm logs/)
 └── README.md            # Tài liệu hướng dẫn
 ```
 
@@ -200,6 +284,7 @@ Week10/
 - **FastAPI**: Web framework hiện đại, nhanh
 - **Pydantic**: Data validation
 - **Uvicorn**: ASGI server
+- **Loguru**: Logging library (tương đương Winston của Node.js)
 - **Python Lists**: In-memory data storage (không cần database)
 
 ## Ưu điểm của phương pháp này
@@ -209,6 +294,7 @@ Week10/
 ✅ Chạy nhanh, phù hợp cho demo và học tập  
 ✅ Không phụ thuộc vào thư viện database  
 ✅ Có rate limiting bảo vệ khỏi spam/abuse  
+✅ Logging đầy đủ giúp debug và monitor  
 
 ## Hạn chế
 

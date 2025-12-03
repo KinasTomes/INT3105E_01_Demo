@@ -28,6 +28,10 @@ wheels/
 *.sqlite
 *.sqlite3
 
+# Logs
+logs/
+*.log
+
 # IDE
 .vscode/
 .idea/
@@ -42,4 +46,3 @@ wheels/
 # OS
 .DS_Store
 Thumbs.db
-

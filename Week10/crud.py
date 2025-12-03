@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 import data_store
 import schemas
+from logger import logger
 
 # CRUD cho Book
 def get_book(book_id: int) -> Optional[dict]:
@@ -26,6 +27,7 @@ def create_book(book: schemas.BookCreate) -> dict:
         "available": book.quantity
     }
     data_store.books.append(new_book)
+    logger.info(f"📚 Created new book: '{new_book['title']}' (ID: {new_book['id']})")
     return new_book
 
 def update_book(book_id: int, book: schemas.BookUpdate) -> Optional[dict]:
@@ -39,7 +41,9 @@ def update_book(book_id: int, book: schemas.BookUpdate) -> Optional[dict]:
 def delete_book(book_id: int) -> Optional[dict]:
     for i, book in enumerate(data_store.books):
         if book["id"] == book_id:
-            return data_store.books.pop(i)
+            deleted_book = data_store.books.pop(i)
+            logger.warning(f"🗑️ Deleted book: '{deleted_book['title']}' (ID: {book_id})")
+            return deleted_book
     return None
 
 # CRUD cho User
@@ -65,6 +69,7 @@ def create_user(user: schemas.UserCreate) -> dict:
         "is_active": True
     }
     data_store.users.append(new_user)
+    logger.info(f"👤 Created new user: '{new_user['name']}' (ID: {new_user['id']}, Email: {new_user['email']})")
     return new_user
 
 def update_user(user_id: int, user: schemas.UserUpdate) -> Optional[dict]:
@@ -86,7 +91,10 @@ def create_borrow_record(borrow: schemas.BorrowRecordCreate) -> Optional[dict]:
     # Kiểm tra sách còn available không
     book = get_book(borrow.book_id)
     if not book or book["available"] <= 0:
+        logger.warning(f"❌ Book borrow failed: Book ID {borrow.book_id} not available")
         return None
+    
+    user = get_user(borrow.user_id)
     
     # Tạo borrow record
     new_borrow = {
@@ -100,6 +108,8 @@ def create_borrow_record(borrow: schemas.BorrowRecordCreate) -> Optional[dict]:
     
     # Giảm số lượng available của sách
     book["available"] -= 1
+    
+    logger.info(f"📖 Book borrowed: '{book['title']}' by '{user['name'] if user else 'Unknown'}' (Borrow ID: {new_borrow['id']}, Available: {book['available']})")
     
     return new_borrow
 
@@ -116,8 +126,11 @@ def return_book(borrow_id: int) -> Optional[dict]:
         
         # Tăng số lượng available của sách
         book = get_book(db_borrow["book_id"])
+        user = get_user(db_borrow["user_id"])
+        
         if book:
             book["available"] += 1
+            logger.info(f"📚 Book returned: '{book['title']}' by '{user['name'] if user else 'Unknown'}' (Borrow ID: {borrow_id}, Available: {book['available']})")
     
     return db_borrow
 

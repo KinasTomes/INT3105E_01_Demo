@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from datetime import datetime, timedelta
 from typing import Dict, List
 import time
+from logger import logger
 
 class RateLimiter:
     def __init__(self, requests: int = 5, window: int = 60):
@@ -51,6 +52,9 @@ class RateLimiter:
             oldest_request = self.request_records[ip][0]
             reset_time = oldest_request + self.window
             retry_after = int(reset_time - current_time)
+            
+            # Log rate limit violation
+            logger.warning(f"Rate limit exceeded for IP: {ip} | Requests: {request_count}/{self.requests}")
             
             return False, {
                 "allowed": False,
@@ -108,6 +112,9 @@ async def rate_limit_middleware(request: Request, call_next):
     allowed, info = rate_limiter.is_allowed(client_ip)
     
     if not allowed:
+        logger.bind(access=True).warning(
+            f"🚫 Rate limit blocked | {request.method} {request.url.path} | IP: {client_ip} | Retry after: {info['reset_in_seconds']}s"
+        )
         return JSONResponse(
             status_code=429,
             content={
