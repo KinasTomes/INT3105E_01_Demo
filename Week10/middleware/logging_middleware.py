@@ -6,6 +6,7 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from logger import logger
 from metrics import metrics_collector
+import prometheus_metrics
 import time
 import json
 
@@ -34,18 +35,29 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         
         # Process request
         try:
-            response = await call_next(request)
+            # Track request in progress for Prometheus
+            with prometheus_metrics.PrometheusInProgressTracker(request.method, request.url.path):
+                response = await call_next(request)
             
             # Tính thời gian xử lý
             process_time = time.time() - start_time
             
-            # Record metrics (bỏ qua /metrics và /health để tránh metrics về chính nó)
-            if request.url.path not in ["/metrics", "/health"]:
+            # Record metrics (bỏ qua monitoring endpoints và static files)
+            if request.url.path not in ["/metrics", "/prometheus", "/health", "/dashboard"] and not request.url.path.startswith("/static"):
+                # Custom metrics
                 metrics_collector.record_request(
                     method=request.method,
                     path=request.url.path,
                     status_code=response.status_code,
                     response_time=process_time
+                )
+                
+                # Prometheus metrics
+                prometheus_metrics.record_request(
+                    method=request.method,
+                    endpoint=request.url.path,
+                    status_code=response.status_code,
+                    duration=process_time
                 )
             
             # Log response

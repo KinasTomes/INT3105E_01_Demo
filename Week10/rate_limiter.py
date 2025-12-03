@@ -102,7 +102,7 @@ async def rate_limit_middleware(request: Request, call_next):
     Middleware để kiểm tra rate limit cho mọi request
     """
     # Bỏ qua rate limit cho documentation và monitoring endpoints
-    if request.url.path in ["/docs", "/redoc", "/openapi.json", "/health", "/metrics"]:
+    if request.url.path in ["/docs", "/redoc", "/openapi.json", "/health", "/metrics", "/prometheus", "/dashboard"] or request.url.path.startswith("/static"):
         response = await call_next(request)
         return response
     
