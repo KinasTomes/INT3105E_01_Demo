@@ -2,12 +2,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers import books, users, borrows
+from rate_limiter import rate_limit_middleware
 
 app = FastAPI(
     title="Library Management API",
     description="API đơn giản để quản lý thư viện (sử dụng in-memory storage)",
     version="1.0.0"
 )
+
+# Cấu hình Rate Limiting
+app.middleware("http")(rate_limit_middleware)
 
 # Cấu hình CORS
 app.add_middleware(
@@ -29,7 +33,8 @@ def read_root():
         "message": "Chào mừng đến với Library Management API",
         "docs": "/docs",
         "version": "1.0.0",
-        "note": "Dữ liệu được lưu trong bộ nhớ (in-memory), sẽ mất khi restart server"
+        "note": "Dữ liệu được lưu trong bộ nhớ (in-memory), sẽ mất khi restart server",
+        "rate_limit": "5 requests/phút cho mỗi IP"
     }
 
 @app.get("/health")

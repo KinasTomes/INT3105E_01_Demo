@@ -8,11 +8,13 @@ API đơn giản để quản lý thư viện được xây dựng bằng FastAP
 - **Quản lý người dùng**: Thêm, sửa, xóa, và xem danh sách người dùng
 - **Quản lý mượn/trả sách**: Mượn sách, trả sách, và xem lịch sử mượn
 - **Dữ liệu mẫu**: Hệ thống tự động khởi tạo một số dữ liệu mẫu khi chạy
+- **Rate Limiting**: Giới hạn 5 requests/phút cho mỗi IP address
 
 ## Đặc điểm
 
 ✅ **Đơn giản**: Không cần cài đặt database, không cần cấu hình phức tạp  
 ✅ **Nhanh**: Sử dụng in-memory storage, truy xuất dữ liệu cực nhanh  
+✅ **Bảo vệ**: Rate limiting tự động chống spam và abuse  
 ⚠️ **Lưu ý**: Dữ liệu sẽ mất khi restart server (chỉ phù hợp cho demo/development)
 
 ## Cài đặt
@@ -81,6 +83,22 @@ Bạn có thể test ngay các API mà không cần thêm dữ liệu!
 - `GET /borrows/` - Lấy danh sách tất cả bản ghi mượn sách
 - `GET /borrows/active` - Lấy danh sách các sách đang được mượn
 - `GET /borrows/{borrow_id}` - Lấy thông tin chi tiết một bản ghi mượn
+
+## Rate Limiting
+
+API có rate limiting tự động:
+- **Giới hạn**: 5 requests/phút cho mỗi IP
+- **Response headers**: Mỗi response có chứa thông tin rate limit
+  - `X-RateLimit-Limit`: Số request tối đa
+  - `X-RateLimit-Remaining`: Số request còn lại
+  - `X-RateLimit-Reset`: Thời gian reset (giây)
+
+Khi vượt quá giới hạn:
+- **Status code**: 429 Too Many Requests
+- **Response**: Thông báo lỗi với thời gian cần chờ
+- **Header**: `Retry-After` cho biết số giây cần đợi
+
+**Lưu ý**: Các endpoint `/docs`, `/redoc`, `/openapi.json`, `/health` không bị giới hạn.
 
 ## Ví dụ sử dụng
 
@@ -172,6 +190,7 @@ Week10/
 ├── data_store.py         # In-memory data storage (mảng)
 ├── schemas.py            # Pydantic schemas cho validation
 ├── crud.py               # CRUD operations
+├── rate_limiter.py       # Rate limiting middleware
 ├── requirements.txt      # Dependencies
 └── README.md            # Tài liệu hướng dẫn
 ```
@@ -189,12 +208,14 @@ Week10/
 ✅ Code đơn giản, dễ hiểu  
 ✅ Chạy nhanh, phù hợp cho demo và học tập  
 ✅ Không phụ thuộc vào thư viện database  
+✅ Có rate limiting bảo vệ khỏi spam/abuse  
 
 ## Hạn chế
 
 ⚠️ Dữ liệu mất khi restart server  
 ⚠️ Không phù hợp cho production  
 ⚠️ Không hỗ trợ concurrent access an toàn  
+⚠️ Rate limit dựa trên IP (có thể bị bypass bằng proxy)  
 
 ## Nâng cấp trong tương lai
 
