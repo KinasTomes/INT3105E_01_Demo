@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List
 import time
 from logger import logger
+from metrics import metrics_collector
 
 class RateLimiter:
     def __init__(self, requests: int = 5, window: int = 60):
@@ -100,8 +101,8 @@ async def rate_limit_middleware(request: Request, call_next):
     """
     Middleware để kiểm tra rate limit cho mọi request
     """
-    # Bỏ qua rate limit cho documentation endpoints
-    if request.url.path in ["/docs", "/redoc", "/openapi.json", "/health"]:
+    # Bỏ qua rate limit cho documentation và monitoring endpoints
+    if request.url.path in ["/docs", "/redoc", "/openapi.json", "/health", "/metrics"]:
         response = await call_next(request)
         return response
     

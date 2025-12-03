@@ -5,6 +5,7 @@ Logging middleware để log mọi request/response
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from logger import logger
+from metrics import metrics_collector
 import time
 import json
 
@@ -37,6 +38,15 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             
             # Tính thời gian xử lý
             process_time = time.time() - start_time
+            
+            # Record metrics (bỏ qua /metrics và /health để tránh metrics về chính nó)
+            if request.url.path not in ["/metrics", "/health"]:
+                metrics_collector.record_request(
+                    method=request.method,
+                    path=request.url.path,
+                    status_code=response.status_code,
+                    response_time=process_time
+                )
             
             # Log response
             status_emoji = "✓" if response.status_code < 400 else "✗"

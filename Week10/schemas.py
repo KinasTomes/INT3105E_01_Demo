@@ -1,5 +1,4 @@
-from pydantic import BaseModel, EmailStr
-from datetime import datetime
+from pydantic import BaseModel
 from typing import Optional
 
 # Book Schemas
@@ -23,52 +22,6 @@ class BookUpdate(BaseModel):
 class Book(BookBase):
     id: int
     available: int
-    
-    class Config:
-        from_attributes = True
-
-# User Schemas
-class UserBase(BaseModel):
-    name: str
-    email: EmailStr
-    phone: str
-
-class UserCreate(UserBase):
-    pass
-
-class UserUpdate(BaseModel):
-    name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    phone: Optional[str] = None
-    is_active: Optional[bool] = None
-
-class User(UserBase):
-    id: int
-    is_active: bool
-    
-    class Config:
-        from_attributes = True
-
-# BorrowRecord Schemas
-class BorrowRecordBase(BaseModel):
-    book_id: int
-    user_id: int
-
-class BorrowRecordCreate(BorrowRecordBase):
-    pass
-
-class BorrowRecord(BorrowRecordBase):
-    id: int
-    borrow_date: datetime
-    return_date: Optional[datetime] = None
-    is_returned: bool
-    
-    class Config:
-        from_attributes = True
-
-class BorrowRecordDetail(BorrowRecord):
-    book: Book
-    user: User
     
     class Config:
         from_attributes = True
